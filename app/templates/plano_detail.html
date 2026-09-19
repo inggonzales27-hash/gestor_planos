@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ plano.codigo if plano else "Plano no encontrado" }}{% endblock %}
+{% block content %}
+
+<p><a href="/">&larr; Volver a la búsqueda</a></p>
+
+{% if not plano %}
+<div class="card"><p>Plano no encontrado.</p></div>
+{% else %}
+
+<div class="card">
+    <h2 style="margin-top:0">{{ plano.codigo }}</h2>
+    <p class="muted">{{ plano.detalle or "Sin descripción" }}</p>
+
+    {% if plano.link_archivo %}
+    <p><a href="{{ plano.link_archivo }}" target="_blank" rel="noopener">Abrir plano en ACC / repositorio &rarr;</a></p>
+    {% else %}
+    <p class="muted">Sin link de archivo registrado todavía.</p>
+    {% endif %}
+
+    <table>
+        <tr><th>Especialidad</th><td>{{ plano.especialidad or "-" }}</td>
+            <th>Nivel</th><td>{{ plano.nivel or "-" }}</td></tr>
+        <tr><th>Edificio</th><td>{{ plano.edificio or "-" }}</td>
+            <th>Etapa</th><td>{{ plano.etapa or "-" }}</td></tr>
+        <tr><th>Tipo de documento</th><td>{{ plano.tipo_documento or "-" }}</td>
+            <th>Tipo de archivo</th><td>{{ plano.tipo_archivo or "-" }}</td></tr>
+        <tr><th>Revisión actual</th><td>{{ plano.revision_actual or "-" }}</td>
+            <th>Fecha de versión</th><td>{{ plano.fecha_version or "-" }}</td></tr>
+        <tr><th>Estatus elaboración</th><td>{{ plano.estatus_elaboracion or "-" }}</td>
+            <th>Estatus envío</th><td>{{ plano.estatus_envio or "-" }}</td></tr>
+    </table>
+</div>
+
+{% if rol in ["administrador", "editor"] %}
+<div class="card">
+    <h3>Registrar nuevo estado</h3>
+    <form method="post" action="/plano/{{ plano.id }}/historial" class="filtros">
+        <div>
+            <label for="tipo_proceso">Proceso</label>
+            <select id="tipo_proceso" name="tipo_proceso" required>
+                <option value="ELABORACION">Elaboración</option>
+                <option value="ENVIO">Envío</option>
+            </select>
+        </div>
+        <div>
+            <label for="estado">Nuevo estado</label>
+            <input type="text" id="estado" name="estado" list="estados-sugeridos" required placeholder="ej. APROBADO" style="width:180px">
+            <datalist id="estados-sugeridos">
+                {% for e in estados_elaboracion %}<option value="{{ e }}">{% endfor %}
+                {% for e in estados_envio %}<option value="{{ e }}">{% endfor %}
+            </datalist>
+        </div>
+        <div>
+            <label for="responsable">Responsable</label>
+            <select id="responsable" name="responsable">
+                <option value="">-- seleccionar --</option>
+                {% for u in usuarios %}
+                <option value="{{ u.usuario }}">{{ u.usuario }}{% if u.nombres %} ({{ u.nombres }} {{ u.apellidos or "" }}){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha" name="fecha">
+        </div>
+        <div style="flex:1; min-width:220px">
+            <label for="comentario">Comentario</label>
+            <input type="text" id="comentario" name="comentario" style="width:100%" placeholder="opcional">
+        </div>
+        <div style="flex:1; min-width:220px">
+            <label for="link_archivo">Link del archivo (ACC / repositorio)</label>
+            <input type="text" id="link_archivo" name="link_archivo" style="width:100%" placeholder="opcional, actualiza el link del plano">
+        </div>
+        <div><button type="submit">Guardar</button></div>
+    </form>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Línea de tiempo</h3>
+    {% if historial %}
+    <ul class="timeline">
+        {% for h in historial %}
+        <li>
+            <strong>{{ h.fecha or "Sin fecha" }}</strong> —
+            <span class="badge badge-warn">{{ h.tipo_proceso }}</span>
+            {{ h.estado }}
+            {% if h.responsable %}<br><span class="muted">Responsable: {{ h.responsable }}</span>{% endif %}
+            {% if h.comentario %}<br><span class="muted">{{ h.comentario }}</span>{% endif %}
+            {% if h.link_archivo %}<br><a href="{{ h.link_archivo }}" target="_blank" rel="noopener">Ver archivo de este evento</a>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Sin eventos registrados.</p>
+    {% endif %}
+</div>
+
+{% endif %}
+{% endblock %}
+

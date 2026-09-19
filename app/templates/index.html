@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Buscar planos{% endblock %}
+{% block content %}
+
+<div class="card">
+    <form class="filtros" method="get" action="/">
+        <div>
+            <label for="q">Buscar por código o descripción</label>
+            <input type="text" id="q" name="q" value="{{ q }}" placeholder="ej. 100021-JYS01-100-P02..." style="width:280px">
+        </div>
+        <div>
+            <label for="especialidad">Especialidad</label>
+            <select id="especialidad" name="especialidad">
+                <option value="">Todas</option>
+                {% for e in especialidades %}
+                <option value="{{ e }}" {% if e == especialidad %}selected{% endif %}>{{ e }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="nivel">Nivel</label>
+            <select id="nivel" name="nivel">
+                <option value="">Todos</option>
+                {% for n in niveles %}
+                <option value="{{ n }}" {% if n == nivel %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="estado">Estatus elaboración</label>
+            <select id="estado" name="estado">
+                <option value="">Todos</option>
+                {% for s in estados %}
+                <option value="{{ s }}" {% if s == estado %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div><button type="submit">Buscar</button></div>
+    </form>
+</div>
+
+<div class="card">
+    <p class="muted">{{ resultados|length }} resultado(s)</p>
+    <table>
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Especialidad</th>
+            <th>Nivel</th>
+            <th>Detalle</th>
+            <th>Rev.</th>
+            <th>Estatus elaboración</th>
+            <th>Estatus envío</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for p in resultados %}
+        <tr>
+            <td><a href="/plano/{{ p.id }}">{{ p.codigo }}</a></td>
+            <td>{{ p.especialidad or "-" }}</td>
+            <td>{{ p.nivel or "-" }}</td>
+            <td>{{ (p.detalle or "")[:60] }}</td>
+            <td>{{ p.revision_actual or "-" }}</td>
+            <td>
+                {% if p.estatus_elaboracion == "APROBADO" %}<span class="badge badge-ok">{{ p.estatus_elaboracion }}</span>
+                {% elif p.estatus_elaboracion %}<span class="badge badge-warn">{{ p.estatus_elaboracion }}</span>
+                {% else %}<span class="badge badge-muted">SIN DATO</span>{% endif %}
+            </td>
+            <td>{{ p.estatus_envio or "-" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

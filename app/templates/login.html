@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar — Gestor de Planos</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #1f2933;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border: 1px solid #dfe3e8;
+            border-radius: 8px;
+            padding: 32px;
+            width: 320px;
+        }
+        h1 { font-size: 18px; margin: 0 0 4px; }
+        p.sub { color: #6b7280; font-size: 13px; margin: 0 0 20px; }
+        label { display: block; font-size: 13px; color: #6b7280; margin-bottom: 4px; margin-top: 14px; }
+        select, input {
+            width: 100%; padding: 9px; border: 1px solid #dfe3e8; border-radius: 6px; font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%; margin-top: 20px; padding: 10px; background: #1e5eff; color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .error { color: #c0362c; font-size: 13px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Gestor de Planos</h1>
+        <p class="sub">Contingencia — acceso por rol</p>
+        <form method="post" action="/login">
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol" required>
+                <option value="administrador">Administrador</option>
+                <option value="editor">Editor</option>
+                <option value="observador">Observador</option>
+            </select>
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Ingresar</button>
+            {% if error %}<p class="error">Contraseña incorrecta.</p>{% endif %}
+        </form>
+    </div>
+</body>
+</html>

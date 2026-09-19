@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+sqlalchemy
+pandas
+openpyxl
+jinja2
+itsdangerous
+psycopg[binary]

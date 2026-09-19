@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestor de Planos{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --border: #dfe3e8;
+            --text: #1f2933;
+            --muted: #6b7280;
+            --accent: #1e5eff;
+            --ok: #1a9d5c;
+            --warn: #c98a00;
+            --bad: #c0362c;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+        }
+        header {
+            background: #10233f;
+            color: white;
+            padding: 16px 24px;
+        }
+        header h1 { margin: 0; font-size: 20px; }
+        header p { margin: 2px 0 0; color: #b9c6de; font-size: 13px; }
+        main { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+        th { background: #eef1f5; color: var(--muted); font-weight: normal; }
+        tr:hover { background: #f8fafc; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-ok { background: var(--ok); }
+        .badge-warn { background: var(--warn); }
+        .badge-bad { background: var(--bad); }
+        .badge-muted { background: var(--muted); }
+        form.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+        form.filtros label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+        form.filtros input, form.filtros select {
+            padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+        }
+        form.filtros button {
+            padding: 9px 18px; background: var(--accent); color: white; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .muted { color: var(--muted); font-size: 13px; }
+        .timeline { list-style: none; padding: 0; margin: 0; }
+        .timeline li { border-left: 3px solid var(--accent); padding: 8px 16px; margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+<header style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>Gestor de Planos — Contingencia</h1>
+        <p>Prototipo local · {{ total_planos if total_planos is defined else "" }} planos cargados</p>
+    </div>
+    {% if rol %}
+    <div style="text-align:right; font-size:13px;">
+        <span style="color:#b9c6de">Rol: {{ rol }}</span><br>
+        <a href="/logout" style="color:#8fb0ff">Cerrar sesión</a>
+    </div>
+    {% endif %}
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>
