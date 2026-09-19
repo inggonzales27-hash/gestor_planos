@@ -1,3 +1,4 @@
+import os
 import secrets
 from datetime import date
 from pathlib import Path
@@ -18,12 +19,16 @@ BASE_DIR = Path(__file__).resolve().parent
 COOKIE_SECRET_PATH = BASE_DIR.parent / ".cookie_secret"
 
 app = FastAPI(title="Gestor de Planos")
+(BASE_DIR / "static").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
-if not COOKIE_SECRET_PATH.exists():
-    COOKIE_SECRET_PATH.write_text(secrets.token_hex(32))
-app.add_middleware(SessionMiddleware, secret_key=COOKIE_SECRET_PATH.read_text().strip())
+cookie_secret = os.environ.get("SESSION_SECRET")
+if not cookie_secret:
+    if not COOKIE_SECRET_PATH.exists():
+        COOKIE_SECRET_PATH.write_text(secrets.token_hex(32))
+    cookie_secret = COOKIE_SECRET_PATH.read_text().strip()
+app.add_middleware(SessionMiddleware, secret_key=cookie_secret)
 
 Base.metadata.create_all(bind=engine)
 
