@@ -5,6 +5,21 @@ from datetime import datetime
 from .database import Base
 
 
+def detectar_proyecto(codigo: str) -> str:
+    """El tercer bloque del código (ej. 100021-JYS01-100-B01-...) indica el proyecto: 100 = Contingencia, 000 = Definitivo."""
+    if not codigo:
+        return None
+    partes = codigo.split("-")
+    if len(partes) < 3:
+        return None
+    bloque = partes[2]
+    if bloque == "100":
+        return "CONTINGENCIA"
+    if bloque == "000":
+        return "DEFINITIVO"
+    return None
+
+
 class CuentaAcceso(Base):
     __tablename__ = "cuentas_acceso"
 
@@ -50,6 +65,9 @@ class Plano(Base):
     codigo_nuevo = Column(String)
     codigo_origen_anterior = Column(String)
     link_archivo = Column(String)
+    proyecto = Column(String, index=True)  # CONTINGENCIA o DEFINITIVO, derivado del código
+    responsable = Column(String)  # coordinador BIM a cargo
+    revisor = Column(String)  # especialista que revisa
 
     historial = relationship(
         "HistorialEstado", back_populates="plano", order_by="HistorialEstado.fecha"

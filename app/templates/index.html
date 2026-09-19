@@ -2,8 +2,16 @@
 {% block title %}Buscar planos{% endblock %}
 {% block content %}
 
+<div class="tabs-proyecto">
+    <a href="/?proyecto=&especialidad={{ especialidad }}&nivel={{ nivel }}&estado={{ estado }}&q={{ q }}" class="{{ 'activo' if not proyecto }}">Todos</a>
+    {% for p in proyectos %}
+    <a href="/?proyecto={{ p }}&especialidad={{ especialidad }}&nivel={{ nivel }}&estado={{ estado }}&q={{ q }}" class="{{ 'activo' if proyecto == p }}">{{ p.capitalize() }}</a>
+    {% endfor %}
+</div>
+
 <div class="card">
     <form class="filtros" method="get" action="/">
+        <input type="hidden" name="proyecto" value="{{ proyecto }}">
         <div>
             <label for="q">Buscar por código o descripción</label>
             <input type="text" id="q" name="q" value="{{ q }}" placeholder="ej. 100021-JYS01-100-P02..." style="width:280px">
@@ -36,11 +44,15 @@
             </select>
         </div>
         <div><button type="submit">Buscar</button></div>
+        {% if rol in ["administrador", "editor"] %}
+        <div style="margin-left:auto"><a href="/plano/nuevo" class="btn">+ Agregar plano</a></div>
+        {% endif %}
     </form>
 </div>
 
 <div class="card">
     <p class="muted">{{ resultados|length }} resultado(s)</p>
+    <div class="tabla-scroll">
     <table>
         <thead>
         <tr>
@@ -59,18 +71,15 @@
             <td><a href="/plano/{{ p.id }}">{{ p.codigo }}</a></td>
             <td>{{ p.especialidad or "-" }}</td>
             <td>{{ p.nivel or "-" }}</td>
-            <td>{{ (p.detalle or "")[:60] }}</td>
+            <td>{{ p.detalle or "-" }}</td>
             <td>{{ p.revision_actual or "-" }}</td>
-            <td>
-                {% if p.estatus_elaboracion == "APROBADO" %}<span class="badge badge-ok">{{ p.estatus_elaboracion }}</span>
-                {% elif p.estatus_elaboracion %}<span class="badge badge-warn">{{ p.estatus_elaboracion }}</span>
-                {% else %}<span class="badge badge-muted">SIN DATO</span>{% endif %}
-            </td>
-            <td>{{ p.estatus_envio or "-" }}</td>
+            <td><span class="badge {{ clase_badge(p.estatus_elaboracion, 'elaboracion') }}">{{ p.estatus_elaboracion or "SIN DATO" }}</span></td>
+            <td>{% if p.estatus_envio %}<span class="badge {{ clase_badge(p.estatus_envio, 'envio') }}">{{ p.estatus_envio }}</span>{% else %}-{% endif %}</td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 
 {% endblock %}

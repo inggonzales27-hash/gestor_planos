@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ "Agregar plano" if not plano else "Editar " + plano.codigo }}{% endblock %}
+{% block content %}
+
+<p><a href="{{ '/plano/' + plano.id|string if plano else '/' }}">&larr; {{ "Volver al plano" if plano else "Volver a la búsqueda" }}</a></p>
+
+<div class="card">
+    <h2 style="margin-top:0">{{ "Agregar nuevo plano" if not plano else "Editar datos de " + plano.codigo }}</h2>
+
+    <form method="post" action="{{ '/plano/' + plano.id|string + '/editar' if plano else '/plano/nuevo' }}">
+        <div class="filtros" style="margin-bottom:12px">
+            {% if not plano %}
+            <div style="flex:1; min-width:260px">
+                <label for="codigo">Código de plano *</label>
+                <input type="text" id="codigo" name="codigo" required style="width:100%" placeholder="ej. 100021-JYS01-100-P02-PLA-IME-E5-000018">
+                <p class="muted" style="margin:4px 0 0">El tercer bloque (100/000) define el proyecto: Contingencia / Definitivo.</p>
+            </div>
+            {% endif %}
+            <div>
+                <label for="especialidad">Especialidad</label>
+                <input type="text" id="especialidad" name="especialidad" value="{{ (plano.especialidad if plano else '')|blank }}" style="width:120px">
+            </div>
+            <div>
+                <label for="nivel">Nivel</label>
+                <input type="text" id="nivel" name="nivel" value="{{ (plano.nivel if plano else '')|blank }}" style="width:100px">
+            </div>
+            <div>
+                <label for="edificio">Edificio</label>
+                <input type="text" id="edificio" name="edificio" value="{{ (plano.edificio if plano else '')|blank }}" style="width:140px">
+            </div>
+            <div>
+                <label for="etapa">Etapa</label>
+                <input type="text" id="etapa" name="etapa" value="{{ (plano.etapa if plano else '')|blank }}" style="width:140px">
+            </div>
+        </div>
+
+        <div class="filtros" style="margin-bottom:12px">
+            <div>
+                <label for="tipo_documento">Tipo de documento</label>
+                <input type="text" id="tipo_documento" name="tipo_documento" value="{{ (plano.tipo_documento if plano else '')|blank }}" style="width:160px">
+            </div>
+            <div>
+                <label for="tipo_archivo">Tipo de archivo</label>
+                <input type="text" id="tipo_archivo" name="tipo_archivo" value="{{ (plano.tipo_archivo if plano else '')|blank }}" style="width:120px">
+            </div>
+            <div>
+                <label for="ubicacion">Ubicación</label>
+                <input type="text" id="ubicacion" name="ubicacion" value="{{ (plano.ubicacion if plano else '')|blank }}" style="width:140px">
+            </div>
+            <div>
+                <label for="correlativo">Correlativo</label>
+                <input type="text" id="correlativo" name="correlativo" value="{{ (plano.correlativo if plano else '')|blank }}" style="width:120px">
+            </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+            <label for="detalle">Detalle / descripción</label>
+            <input type="text" id="detalle" name="detalle" value="{{ (plano.detalle if plano else '')|blank }}" style="width:100%">
+        </div>
+
+        <div class="filtros" style="margin-bottom:12px">
+            <div>
+                <label for="revision_actual">Revisión actual</label>
+                <input type="text" id="revision_actual" name="revision_actual" value="{{ (plano.revision_actual if plano else '')|blank }}" style="width:100px">
+            </div>
+            <div>
+                <label for="fecha_version">Fecha de versión</label>
+                <input type="date" id="fecha_version" name="fecha_version" value="{{ (plano.fecha_version if plano else '')|blank }}">
+            </div>
+            <div>
+                <label for="formato_plano">Formato de plano</label>
+                <input type="text" id="formato_plano" name="formato_plano" value="{{ (plano.formato_plano if plano else '')|blank }}" style="width:120px">
+            </div>
+            <div>
+                <label for="escala_plano">Escala</label>
+                <input type="text" id="escala_plano" name="escala_plano" value="{{ (plano.escala_plano if plano else '')|blank }}" style="width:100px">
+            </div>
+            <div>
+                <label for="revision_formal">Revisión formal</label>
+                <input type="text" id="revision_formal" name="revision_formal" value="{{ (plano.revision_formal if plano else '')|blank }}" style="width:100px">
+            </div>
+        </div>
+
+        <div class="filtros" style="margin-bottom:12px">
+            <div>
+                <label for="estado">Estado general</label>
+                <input type="text" id="estado" name="estado" value="{{ (plano.estado if plano else '')|blank }}" style="width:140px">
+            </div>
+            <div>
+                <label for="estatus_elaboracion">Estatus elaboración</label>
+                <input type="text" id="estatus_elaboracion" name="estatus_elaboracion" value="{{ (plano.estatus_elaboracion if plano else '')|blank }}" placeholder="ej. FINALIZADO" style="width:160px">
+            </div>
+            <div>
+                <label for="estatus_envio">Estatus envío</label>
+                <input type="text" id="estatus_envio" name="estatus_envio" value="{{ (plano.estatus_envio if plano else '')|blank }}" placeholder="ej. APROBADO" style="width:160px">
+            </div>
+        </div>
+
+        <div class="filtros" style="margin-bottom:12px">
+            <div>
+                <label for="responsable">Responsable (Coordinador BIM)</label>
+                <select id="responsable" name="responsable" style="width:240px">
+                    <option value="">-- seleccionar --</option>
+                    {% for u in usuarios %}
+                    <option value="{{ u.usuario }}" {% if plano and plano.responsable == u.usuario %}selected{% endif %}>{{ u.usuario }}{% if u.nombres %} ({{ u.nombres }} {{ u.apellidos or "" }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="revisor">Revisor (Especialista)</label>
+                <select id="revisor" name="revisor" style="width:240px">
+                    <option value="">-- seleccionar --</option>
+                    {% for u in usuarios %}
+                    <option value="{{ u.usuario }}" {% if plano and plano.revisor == u.usuario %}selected{% endif %}>{{ u.usuario }}{% if u.nombres %} ({{ u.nombres }} {{ u.apellidos or "" }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            <label for="link_archivo">Link del archivo (ACC / repositorio)</label>
+            <input type="text" id="link_archivo" name="link_archivo" value="{{ (plano.link_archivo if plano else '')|blank }}" style="width:100%">
+        </div>
+
+        <button type="submit">{{ "Crear plano" if not plano else "Guardar cambios" }}</button>
+    </form>
+</div>
+
+{% endblock %}

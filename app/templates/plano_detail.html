@@ -9,7 +9,12 @@
 {% else %}
 
 <div class="card">
-    <h2 style="margin-top:0">{{ plano.codigo }}</h2>
+    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:8px;">
+        <h2 style="margin-top:0">{{ plano.codigo }}</h2>
+        {% if rol in ["administrador", "editor"] %}
+        <a href="/plano/{{ plano.id }}/editar" class="btn btn-secundario">Editar datos del plano</a>
+        {% endif %}
+    </div>
     <p class="muted">{{ plano.detalle or "Sin descripción" }}</p>
 
     {% if plano.link_archivo %}
@@ -19,16 +24,20 @@
     {% endif %}
 
     <table>
-        <tr><th>Especialidad</th><td>{{ plano.especialidad or "-" }}</td>
-            <th>Nivel</th><td>{{ plano.nivel or "-" }}</td></tr>
-        <tr><th>Edificio</th><td>{{ plano.edificio or "-" }}</td>
-            <th>Etapa</th><td>{{ plano.etapa or "-" }}</td></tr>
-        <tr><th>Tipo de documento</th><td>{{ plano.tipo_documento or "-" }}</td>
-            <th>Tipo de archivo</th><td>{{ plano.tipo_archivo or "-" }}</td></tr>
-        <tr><th>Revisión actual</th><td>{{ plano.revision_actual or "-" }}</td>
-            <th>Fecha de versión</th><td>{{ plano.fecha_version or "-" }}</td></tr>
-        <tr><th>Estatus elaboración</th><td>{{ plano.estatus_elaboracion or "-" }}</td>
-            <th>Estatus envío</th><td>{{ plano.estatus_envio or "-" }}</td></tr>
+        <tr><th>Proyecto</th><td>{{ plano.proyecto or "-" }}</td>
+            <th>Especialidad</th><td>{{ plano.especialidad or "-" }}</td></tr>
+        <tr><th>Nivel</th><td>{{ plano.nivel or "-" }}</td>
+            <th>Edificio</th><td>{{ plano.edificio or "-" }}</td></tr>
+        <tr><th>Etapa</th><td>{{ plano.etapa or "-" }}</td>
+            <th>Tipo de documento</th><td>{{ plano.tipo_documento or "-" }}</td></tr>
+        <tr><th>Tipo de archivo</th><td>{{ plano.tipo_archivo or "-" }}</td>
+            <th>Revisión actual</th><td>{{ plano.revision_actual or "-" }}</td></tr>
+        <tr><th>Fecha de versión</th><td>{{ plano.fecha_version or "-" }}</td>
+            <th>Estatus elaboración</th><td><span class="badge {{ clase_badge(plano.estatus_elaboracion, 'elaboracion') }}">{{ plano.estatus_elaboracion or "SIN DATO" }}</span></td></tr>
+        <tr><th>Estatus envío</th><td>{% if plano.estatus_envio %}<span class="badge {{ clase_badge(plano.estatus_envio, 'envio') }}">{{ plano.estatus_envio }}</span>{% else %}-{% endif %}</td>
+            <th>Responsable (Coordinador BIM)</th><td>{{ plano.responsable or "-" }}</td></tr>
+        <tr><th>Revisor (Especialista)</th><td>{{ plano.revisor or "-" }}</td>
+            <th></th><td></td></tr>
     </table>
 </div>
 
@@ -84,8 +93,8 @@
         {% for h in historial %}
         <li>
             <strong>{{ h.fecha or "Sin fecha" }}</strong> —
-            <span class="badge badge-warn">{{ h.tipo_proceso }}</span>
-            {{ h.estado }}
+            <span class="muted">{{ h.tipo_proceso }}</span>
+            <span class="badge {{ clase_badge(h.estado, 'elaboracion' if h.tipo_proceso == 'ELABORACION' else 'envio') }}">{{ h.estado }}</span>
             {% if h.responsable %}<br><span class="muted">Responsable: {{ h.responsable }}</span>{% endif %}
             {% if h.comentario %}<br><span class="muted">{{ h.comentario }}</span>{% endif %}
             {% if h.link_archivo %}<br><a href="{{ h.link_archivo }}" target="_blank" rel="noopener">Ver archivo de este evento</a>{% endif %}

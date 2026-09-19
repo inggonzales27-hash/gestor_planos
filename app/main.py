@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from .database import Base, engine, get_db, SessionLocal
-from .models import Plano, HistorialEstado, Usuario
+from .models import Plano, HistorialEstado, Usuario, detectar_proyecto
 from .auth import autenticar, requerir_login, requerir_edicion, crear_cuentas_si_no_existen, usuario_actual
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -44,6 +44,37 @@ finally:
     _db_inicial.close()
 
 
+BADGES_ELABORACION = {
+    "FINALIZADO": "badge-ok",
+    "EN ELAB.": "badge-info",
+    "POR REV.": "badge-purple",
+    "LEV. OBS.": "badge-warn",
+    "OBSERV.": "badge-bad",
+    "PROGRAM.": "badge-muted",
+    "SIN DATO": "badge-muted",
+}
+BADGES_ENVIO = {
+    "APROBADO": "badge-ok",
+    "APROBADO C/C": "badge-ok",
+    "EN REVISIÓN": "badge-info",
+    "ENVIADO A CD": "badge-purple",
+    "ENVIADO A ANIN": "badge-purple",
+}
+
+
+def clase_badge(valor, tipo="elaboracion"):
+    if not valor:
+        return "badge-muted"
+    mapa = BADGES_ELABORACION if tipo == "elaboracion" else BADGES_ENVIO
+    return mapa.get(valor.strip().upper(), "badge-warn")
+
+
+templates.env.globals["clase_badge"] = clase_badge
+templates.env.filters["blank"] = lambda v: v if v is not None else ""
+
+PROYECTOS = ["CONTINGENCIA", "DEFINITIVO"]
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request, error: str = ""):
     return templates.TemplateResponse(request, "login.html", {"error": error})
@@ -67,6 +98,7 @@ def logout(request: Request):
 def index(
     request: Request,
     q: str = "",
+    proyecto: str = "",
     especialidad: str = "",
     nivel: str = "",
     estado: str = "",
@@ -74,6 +106,8 @@ def index(
     rol: str = Depends(requerir_login),
 ):
     query = db.query(Plano)
+    if proyecto:
+        query = query.filter(Plano.proyecto == proyecto)
     if q:
         like = f"%{q}%"
         query = query.filter(or_(Plano.codigo.ilike(like), Plano.detalle.ilike(like)))
@@ -97,6 +131,8 @@ def index(
             "resultados": resultados,
             "total_planos": db.query(Plano).count(),
             "q": q,
+            "proyecto": proyecto,
+            "proyectos": PROYECTOS,
             "especialidad": especialidad,
             "nivel": nivel,
             "estado": estado,
@@ -106,6 +142,73 @@ def index(
             "rol": rol,
         },
     )
+
+
+@app.get("/plano/nuevo", response_class=HTMLResponse)
+def nuevo_plano_form(request: Request, db: Session = Depends(get_db), rol: str = Depends(requerir_edicion)):
+    usuarios = db.query(Usuario).order_by(Usuario.usuario).all()
+    return templates.TemplateResponse(
+        request,
+        "plano_form.html",
+        {"plano": None, "usuarios": usuarios, "rol": rol},
+    )
+
+
+@app.post("/plano/nuevo")
+def crear_plano(
+    request: Request,
+    codigo: str = Form(...),
+    edificio: str = Form(""),
+    etapa: str = Form(""),
+    tipo_documento: str = Form(""),
+    especialidad: str = Form(""),
+    tipo_archivo: str = Form(""),
+    nivel: str = Form(""),
+    ubicacion: str = Form(""),
+    correlativo: str = Form(""),
+    detalle: str = Form(""),
+    revision_actual: str = Form(""),
+    fecha_version: str = Form(""),
+    formato_plano: str = Form(""),
+    escala_plano: str = Form(""),
+    revision_formal: str = Form(""),
+    estado: str = Form(""),
+    estatus_elaboracion: str = Form(""),
+    estatus_envio: str = Form(""),
+    link_archivo: str = Form(""),
+    responsable: str = Form(""),
+    revisor: str = Form(""),
+    db: Session = Depends(get_db),
+    rol: str = Depends(requerir_edicion),
+):
+    codigo = codigo.strip()
+    plano = Plano(
+        codigo=codigo,
+        edificio=edificio or None,
+        etapa=etapa or None,
+        tipo_documento=tipo_documento or None,
+        especialidad=especialidad or None,
+        tipo_archivo=tipo_archivo or None,
+        nivel=nivel or None,
+        ubicacion=ubicacion or None,
+        correlativo=correlativo or None,
+        detalle=detalle or None,
+        revision_actual=revision_actual or None,
+        fecha_version=date.fromisoformat(fecha_version) if fecha_version else None,
+        formato_plano=formato_plano or None,
+        escala_plano=escala_plano or None,
+        revision_formal=revision_formal or None,
+        estado=estado or None,
+        estatus_elaboracion=estatus_elaboracion or None,
+        estatus_envio=estatus_envio or None,
+        link_archivo=link_archivo or None,
+        responsable=responsable or None,
+        revisor=revisor or None,
+        proyecto=detectar_proyecto(codigo),
+    )
+    db.add(plano)
+    db.commit()
+    return RedirectResponse(url=f"/plano/{plano.id}", status_code=303)
 
 
 @app.get("/plano/{plano_id}", response_class=HTMLResponse)
@@ -132,6 +235,69 @@ def detalle_plano(request: Request, plano_id: int, db: Session = Depends(get_db)
             "rol": rol,
         },
     )
+
+
+@app.get("/plano/{plano_id}/editar", response_class=HTMLResponse)
+def editar_plano_form(request: Request, plano_id: int, db: Session = Depends(get_db), rol: str = Depends(requerir_edicion)):
+    plano = db.get(Plano, plano_id)
+    usuarios = db.query(Usuario).order_by(Usuario.usuario).all()
+    return templates.TemplateResponse(
+        request,
+        "plano_form.html",
+        {"plano": plano, "usuarios": usuarios, "rol": rol},
+    )
+
+
+@app.post("/plano/{plano_id}/editar")
+def guardar_edicion_plano(
+    plano_id: int,
+    edificio: str = Form(""),
+    etapa: str = Form(""),
+    tipo_documento: str = Form(""),
+    especialidad: str = Form(""),
+    tipo_archivo: str = Form(""),
+    nivel: str = Form(""),
+    ubicacion: str = Form(""),
+    correlativo: str = Form(""),
+    detalle: str = Form(""),
+    revision_actual: str = Form(""),
+    fecha_version: str = Form(""),
+    formato_plano: str = Form(""),
+    escala_plano: str = Form(""),
+    revision_formal: str = Form(""),
+    estado: str = Form(""),
+    estatus_elaboracion: str = Form(""),
+    estatus_envio: str = Form(""),
+    link_archivo: str = Form(""),
+    responsable: str = Form(""),
+    revisor: str = Form(""),
+    db: Session = Depends(get_db),
+    rol: str = Depends(requerir_edicion),
+):
+    plano = db.get(Plano, plano_id)
+    if plano:
+        plano.edificio = edificio or None
+        plano.etapa = etapa or None
+        plano.tipo_documento = tipo_documento or None
+        plano.especialidad = especialidad or None
+        plano.tipo_archivo = tipo_archivo or None
+        plano.nivel = nivel or None
+        plano.ubicacion = ubicacion or None
+        plano.correlativo = correlativo or None
+        plano.detalle = detalle or None
+        plano.revision_actual = revision_actual or None
+        plano.fecha_version = date.fromisoformat(fecha_version) if fecha_version else None
+        plano.formato_plano = formato_plano or None
+        plano.escala_plano = escala_plano or None
+        plano.revision_formal = revision_formal or None
+        plano.estado = estado or None
+        plano.estatus_elaboracion = estatus_elaboracion or None
+        plano.estatus_envio = estatus_envio or None
+        plano.link_archivo = link_archivo or None
+        plano.responsable = responsable or None
+        plano.revisor = revisor or None
+        db.commit()
+    return RedirectResponse(url=f"/plano/{plano_id}", status_code=303)
 
 
 @app.post("/plano/{plano_id}/historial")
